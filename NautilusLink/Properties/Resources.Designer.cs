@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Jpp.ProjectDocuments.Properties {
+namespace NautilusLink.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace Jpp.ProjectDocuments.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Jpp.ProjectDocuments.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NautilusLink.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,16 +57,6 @@ namespace Jpp.ProjectDocuments.Properties {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] SchemeTrackerV26 {
-            get {
-                object obj = ResourceManager.GetObject("SchemeTrackerV26", resourceCulture);
-                return ((byte[])(obj));
             }
         }
     }

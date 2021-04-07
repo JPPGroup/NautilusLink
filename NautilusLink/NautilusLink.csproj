@@ -1,6 +1,6 @@
 ﻿<Project>
   
-  <Import Project="..\..\IronstoneBase\IronstoneObjectModelBaseUiProject.csproj" />
+  <Import Project="..\IronstoneBase\IronstoneObjectModelBaseUiProject.csproj" />
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">
