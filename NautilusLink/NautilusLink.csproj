@@ -1,6 +1,11 @@
 ﻿<Project>
   
   <Import Project="..\IronstoneBase\IronstoneObjectModelBaseUiProject.csproj" />
+  
+  <PropertyGroup>
+    <RootNamespace>TLS.NautilusLink</RootNamespace>
+    <AssemblyName>IronstoneNautilusLink</AssemblyName>  
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.8">

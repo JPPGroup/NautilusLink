@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace NautilusLink.Properties {
+namespace TLS.NautilusLink.Properties {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace NautilusLink.Properties {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NautilusLink.Properties.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("TLS.NautilusLink.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,43 @@ namespace NautilusLink.Properties {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Login.
+        /// </summary>
+        internal static string ExtensionApplication_LoginStateButton_LoginText {
+            get {
+                return ResourceManager.GetString("ExtensionApplication_LoginStateButton_LoginText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logout.
+        /// </summary>
+        internal static string ExtensionApplication_LoginStateButton_LogoutText {
+            get {
+                return ResourceManager.GetString("ExtensionApplication_LoginStateButton_LogoutText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Nautilus.
+        /// </summary>
+        internal static string ExtensionApplication_Tab_Name {
+            get {
+                return ResourceManager.GetString("ExtensionApplication_Tab_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap loginstate {
+            get {
+                object obj = ResourceManager.GetObject("loginstate", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
             }
         }
     }
