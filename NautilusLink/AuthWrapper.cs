@@ -12,7 +12,7 @@ namespace TLS.NautilusLink
     {
         public static string Tenant = "nautilustl.onmicrosoft.com";
         public static string AzureADB2CHostname = "nautilustl.b2clogin.com";
-        public static string ClientID = "14227b8f-ea71-487e-b4ca-05982366a566";
+        public static string ClientID = "84a1236c-9109-4f29-882b-1711abf9ce0a";
         public static string PolicySignUpSignIn = "B2C_1_signupsignin1";
         /*public static string PolicyEditProfile = "b2c_1_edit_profile";
         public static string PolicyResetPassword = "b2c_1_reset";*/
@@ -32,7 +32,8 @@ namespace TLS.NautilusLink
 
         public AuthWrapper()
         {
-             _application = PublicClientApplicationBuilder.Create(ClientID).WithB2CAuthority(Authority).Build();
+             _application = PublicClientApplicationBuilder.Create(ClientID).WithB2CAuthority(Authority).WithRedirectUri("http://localhost").Build();
+             //_application = PublicClientApplicationBuilder.Create(ClientID).WithB2CAuthority(Authority).Build();
         }
 
         public async Task<bool> SilentAuthAsync()
@@ -57,13 +58,20 @@ namespace TLS.NautilusLink
 
         public async Task InteractiveAuthAsync()
         {
-            IEnumerable<IAccount> accounts = await _application.GetAccountsAsync(PolicySignUpSignIn);
-            IAccount account = accounts.FirstOrDefault();
-            
-            var authResult = await _application.AcquireTokenInteractive(scopes).WithAccount(account).ExecuteAsync();
-            AccessToken = authResult.AccessToken;
-            Authenticated = true;
-            AuthenticationStateChanged?.Invoke(this, null);
+            /*IEnumerable<IAccount> accounts = await _application.GetAccountsAsync(PolicySignUpSignIn);
+            IAccount account = accounts.FirstOrDefault();*/
+
+            try
+            {
+                var authResult = await _application.AcquireTokenInteractive(scopes).WithUseEmbeddedWebView(false).ExecuteAsync();
+                AccessToken = authResult.AccessToken;
+                Authenticated = true;
+                AuthenticationStateChanged?.Invoke(this, null);
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
         }
     }
 }

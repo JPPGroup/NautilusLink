@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.Windows;
@@ -26,7 +27,7 @@ namespace TLS.NautilusLink
             _auth = new AuthWrapper();
             _syncContext = SynchronizationContext.Current;
             _current = this;
-            
+
             Task.Run(async () =>
             {
                 await _auth.SilentAuthAsync();
@@ -73,7 +74,7 @@ namespace TLS.NautilusLink
             
             
             RibbonPanel panel = new RibbonPanel();
-            RibbonPanelSource source = new RibbonPanelSource { Title = "Site Designer" };
+            RibbonPanelSource source = new RibbonPanelSource { Title = "Nautilus Account" };
             RibbonRowPanel stack = new RibbonRowPanel();
 
             /*RibbonToggleButton aboutButton = UIHelper.CreateWindowToggle(Resources.ExtensionApplication_AboutWindow_Name, Resources.About, RibbonItemSize.Standard, _container.Resolve<About>(), "10992236-c8f6-4732-b5e0-2d9194f07068");
