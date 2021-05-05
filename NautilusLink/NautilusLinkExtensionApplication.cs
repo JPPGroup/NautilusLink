@@ -5,9 +5,10 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.Windows;
 using Jpp.Ironstone.Core;
 using Jpp.Ironstone.Core.UI;
+using Microsoft.Extensions.DependencyInjection;
+using TLS.Nautilus.Api;
 using TLS.NautilusLink;
 using TLS.NautilusLink.Properties;
-using Unity;
 
 [assembly: ExtensionApplication(typeof(NautilusLinkExtensionApplication))]
 
@@ -19,7 +20,10 @@ namespace TLS.NautilusLink
         private AuthWrapper _auth;
         private System.Threading.SynchronizationContext _syncContext;
 
-        private static NautilusLinkExtensionApplication _current;
+        public static NautilusLinkExtensionApplication _current;
+        internal IServiceProvider _provider;
+
+        private SiteDesignerLink _siteDesigner;
         
         public void Initialize()
         {
@@ -30,7 +34,16 @@ namespace TLS.NautilusLink
 
             Task.Run(async () =>
             {
-                await _auth.SilentAuthAsync();
+                try
+                {
+                    await _auth.SilentAuthAsync();
+                }
+                catch (System.Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+                
             });
             _auth.AuthenticationStateChanged += AuthOnAuthenticationStateChanged;
         }
@@ -55,9 +68,17 @@ namespace TLS.NautilusLink
             
         }
 
-        public void InjectContainer(IUnityContainer container)
+        public void RegisterServices(IServiceCollection container)
         {
-            
+            container.AddHttpClient();
+            //TODO: Change this to production
+            container.AddNautilusApi(options => options.UseStaging().UseHttp());
+        }
+
+        public void InjectContainer(IServiceProvider container)
+        {
+            _provider = container;
+            _siteDesigner = new SiteDesignerLink(_auth);
         }
 
         public void CreateUI()
@@ -99,6 +120,8 @@ namespace TLS.NautilusLink
             source.Items.Add(stack);
             panel.Source = source;
             _nautilusTab.Panels.Add(panel);
+            
+            _nautilusTab.Panels.Add(_siteDesigner.BuildUi());
         }
 
         [CommandMethod("NAUT_Login")]

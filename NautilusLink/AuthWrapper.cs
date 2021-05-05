@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
-using Jpp.Common;
 using Microsoft.Identity.Client;
+using Microsoft.Identity.Client.Extensions.Msal;
+using TLS.Nautilus.Api;
 
 namespace TLS.NautilusLink
 {
-    class AuthWrapper 
+    public class AuthWrapper 
     {
         public static string Tenant = "nautilustl.onmicrosoft.com";
         public static string AzureADB2CHostname = "nautilustl.b2clogin.com";
@@ -29,6 +32,7 @@ namespace TLS.NautilusLink
         public event EventHandler AuthenticationStateChanged;
         
         private IPublicClientApplication _application;
+        private MsalCacheHelper _cache;
 
         public AuthWrapper()
         {
@@ -38,15 +42,16 @@ namespace TLS.NautilusLink
 
         public async Task<bool> SilentAuthAsync()
         {
+            Debugger.Launch();
+            await BuildCache();
+            
             AuthenticationResult authResult = null;
             IEnumerable<IAccount> accounts = await _application.GetAccountsAsync(PolicySignUpSignIn);
             IAccount account = accounts.FirstOrDefault();
             try
             {
                 authResult = await _application.AcquireTokenSilent(scopes, account).ExecuteAsync();
-                AccessToken = authResult.AccessToken;
-                Authenticated = true;
-                AuthenticationStateChanged?.Invoke(this, null);
+                SetAccessToken(authResult.AccessToken);
             }
             catch (MsalUiRequiredException ex)
             {
@@ -64,14 +69,33 @@ namespace TLS.NautilusLink
             try
             {
                 var authResult = await _application.AcquireTokenInteractive(scopes).WithUseEmbeddedWebView(false).ExecuteAsync();
-                AccessToken = authResult.AccessToken;
-                Authenticated = true;
-                AuthenticationStateChanged?.Invoke(this, null);
+                SetAccessToken(authResult.AccessToken);
             }
             catch (Exception e)
             {
                 throw;
             }
+        }
+
+        private async Task BuildCache()
+        {
+            if (_cache == null)
+            {
+                string path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                StorageCreationPropertiesBuilder builder = new StorageCreationPropertiesBuilder("nautiluscredentials.dat", path);
+                _cache = await MsalCacheHelper.CreateAsync(builder.Build());
+                ITokenCache userCache =_application.UserTokenCache;
+                _cache.RegisterCache(userCache);
+            }
+        }
+        
+        private void SetAccessToken(string token)
+        {
+            AccessToken = token;
+            NautilusApi.SetToken(AccessToken);
+            
+            Authenticated = true;
+            AuthenticationStateChanged?.Invoke(this, null);
         }
     }
 }

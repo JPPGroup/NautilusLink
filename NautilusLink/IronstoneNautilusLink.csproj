@@ -12,7 +12,18 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.29.0" />
+    <PackageReference Include="Microsoft.Identity.Client.Extensions.Msal" Version="2.18.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NautilusApi\src\Client\TLS.Nautilus.Api.csproj" />
+    <ProjectReference Include="..\UI\UI.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
 
   <ItemGroup>

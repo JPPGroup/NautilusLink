@@ -96,5 +96,42 @@ namespace TLS.NautilusLink.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap sitebrowser {
+            get {
+                object obj = ResourceManager.GetObject("sitebrowser", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Open SiteDesigner.
+        /// </summary>
+        internal static string SiteDesignerLink_BrowserLinkButton_Text {
+            get {
+                return ResourceManager.GetString("SiteDesignerLink_BrowserLinkButton_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set Site.
+        /// </summary>
+        internal static string SiteDesignerLink_SetSiteButton_Text {
+            get {
+                return ResourceManager.GetString("SiteDesignerLink_SetSiteButton_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Site Designer.
+        /// </summary>
+        internal static string SiteDesignerLink_TabPanel_Text {
+            get {
+                return ResourceManager.GetString("SiteDesignerLink_TabPanel_Text", resourceCulture);
+            }
+        }
     }
 }

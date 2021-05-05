@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NautilusApi\src\Shared\TLS.Nautilus.Api.Shared.csproj" />
+  </ItemGroup>
+
+</Project>
