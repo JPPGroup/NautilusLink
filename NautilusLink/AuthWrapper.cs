@@ -42,7 +42,6 @@ namespace TLS.NautilusLink
 
         public async Task<bool> SilentAuthAsync()
         {
-            Debugger.Launch();
             await BuildCache();
             
             AuthenticationResult authResult = null;

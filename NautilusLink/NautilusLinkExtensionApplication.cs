@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.Windows;
 using Jpp.Ironstone.Core;
@@ -22,6 +23,7 @@ namespace TLS.NautilusLink
 
         public static NautilusLinkExtensionApplication _current;
         internal IServiceProvider _provider;
+        private ISiteClient _siteClient;
 
         private SiteDesignerLink _siteDesigner;
         
@@ -46,6 +48,13 @@ namespace TLS.NautilusLink
                 
             });
             _auth.AuthenticationStateChanged += AuthOnAuthenticationStateChanged;
+
+            foreach (Document doc in Application.DocumentManager)
+            {
+                doc.Database.SaveComplete += async (sender, args) => await SiteDesignerLink.SyncToRemote(_siteClient, doc);
+            }
+            
+            Application.DocumentManager.DocumentCreated += (sender, args) => args.Document.Database.SaveComplete += async (o, eventArgs) => await SiteDesignerLink.SyncToRemote(_siteClient, args.Document);
         }
 
         private void AuthOnAuthenticationStateChanged(object sender, EventArgs e)
@@ -55,10 +64,15 @@ namespace TLS.NautilusLink
                 if (_auth.Authenticated)
                 {
                     _loginState.Text = Resources.ExtensionApplication_LoginStateButton_LogoutText;
+                    _loginState.Image = UIHelper.LoadImage(Resources.logout);
+                    _loginState.LargeImage = UIHelper.LoadImage(Resources.logout);
                 }
                 else
                 {
                     _loginState.Text = Resources.ExtensionApplication_LoginStateButton_LoginText;
+                    _loginState.Image = UIHelper.LoadImage(Resources.loginstate);
+                    _loginState.LargeImage = UIHelper.LoadImage(Resources.loginstate);
+                    
                 }
             }, null);
         }
@@ -79,6 +93,7 @@ namespace TLS.NautilusLink
         {
             _provider = container;
             _siteDesigner = new SiteDesignerLink(_auth);
+            _siteClient = container.GetRequiredService<ISiteClient>();
         }
 
         public void CreateUI()

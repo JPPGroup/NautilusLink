@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\IronstoneObjectModel\Housing\HousingObjectModel.csproj" />
     <ProjectReference Include="..\NautilusApi\src\Client\TLS.Nautilus.Api.csproj" />
     <ProjectReference Include="..\UI\UI.csproj" />
   </ItemGroup>
@@ -39,6 +40,10 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup Condition=" $(Configuration.Contains('Local')) ">
+    <ProjectReference Include="..\..\IronstoneObjectModel\Structures\StructuresObjectModel.csproj" />
   </ItemGroup>
 
 </Project>
