@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project> 
+  <PropertyGroup>          
+    <RootNamespace>TLS.NautilusLinkCore.Tests</RootNamespace>
+    <AssemblyName>IronstoneNautilusLinkCoreTests</AssemblyName>
+	<Nullable>enable</Nullable>
+	<LangVersion>8.0</LangVersion>
+  </PropertyGroup>   
+  <Import Project="..\IronstoneBase\IronstoneBaseTestProject.csproj" />  
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>  
+  <ItemGroup>
+    <ProjectReference Include="..\NautilusLinkCore\IronstoneNautilusLinkCore.csproj" />
+  </ItemGroup>
+</Project>

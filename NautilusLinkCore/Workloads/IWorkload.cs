@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace TLS.NautilusLinkCore.Workloads
 {
-    internal interface IWorkload
+    public interface IWorkload
     {
-        void Run(ILogger logger);
+        Task Run(ILogger<IWorkload> logger);
     }
 }

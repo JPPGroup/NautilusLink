@@ -25,6 +25,11 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>  
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\IronstoneObjectModel\DocumentManagement\IronstoneDocumentManagementObjectModel.csproj" />
+    <ProjectReference Include="..\..\IronstoneObjectModel\Structures\StructuresObjectModel.csproj" />
   </ItemGroup>
 
 </Project>

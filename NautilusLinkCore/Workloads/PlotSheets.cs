@@ -9,7 +9,7 @@ namespace TLS.NautilusLinkCore.Workloads
 {
     internal class PlotSheets : IWorkload
     {
-        public void Run(ILogger logger)
+        public async Task Run(ILogger<IWorkload> logger)
         {
             throw new NotImplementedException();
         }
