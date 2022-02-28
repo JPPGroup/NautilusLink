@@ -13,9 +13,9 @@ namespace Jpp.Ironstone.Core.Tests
         [Test]
         public void RunGeneration()
         {
-            RunTest<bool>(nameof(RunGenerationResident));
+            Assert.IsTrue(RunTest<bool>(nameof(RunGenerationResident)), "Test run did not complete.");
             string log = LogHelper.GetLogReader().ReadToEnd();
-            StringAssert.Contains("No site export file found.", log);
+            StringAssert.DoesNotContain("No site export file found.", log);
         }
 
         public bool RunGenerationResident()

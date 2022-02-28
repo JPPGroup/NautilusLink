@@ -18,6 +18,7 @@ using Autodesk.AutoCAD.PlottingServices;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Autodesk.AutoCAD.ApplicationServices;
+using System.Reflection;
 
 namespace TLS.NautilusLinkCore.Workloads
 {
@@ -25,30 +26,6 @@ namespace TLS.NautilusLinkCore.Workloads
     {
         ILogger _logger;
         Document _target;
-
-        public async Task Run(ILogger<IWorkload> logger)
-        {
-            _logger = logger;
-            _target = Application.DocumentManager.MdiActiveDocument;
-
-            using (Transaction trans = _target.TransactionManager.StartTransaction())
-            {
-                ProcessSite();
-
-            //Add xrefs
-
-            //Generate Sheets            
-                var controller = GenerateSheets();
-
-                //Plot Sheets            
-                controller.RemoveDefaultLayouts();
-                trans.Commit();
-
-                PlotSheets(controller);
-            }          
-            
-            await BundlePlots();
-        }        
 
         [CommandMethod("NAUT_GENERATESITE")]
         [IronstoneCommand]
@@ -64,6 +41,33 @@ namespace TLS.NautilusLinkCore.Workloads
             GenerateSite generateSite = new GenerateSite();
             await generateSite.Run(logger);
         }
+
+        public async Task Run(ILogger<IWorkload> logger)
+        {
+            _logger = logger;
+            _target = Application.DocumentManager.MdiActiveDocument;
+
+            using (Transaction trans = _target.TransactionManager.StartTransaction())
+            {
+                ProcessSite();
+
+                //Add xrefs
+
+                //Generate Sheets            
+                var controller = GenerateSheets();
+
+                //Plot Sheets            
+                controller.RemoveDefaultLayouts();
+                trans.Commit();
+
+                if(!Directory.Exists("plots"))
+                    Directory.CreateDirectory("plots");
+
+                PlotSheets(controller);
+            }          
+            
+            await BundlePlots();
+        }                
                 
         private void ProcessSite()
         {
@@ -75,23 +79,32 @@ namespace TLS.NautilusLinkCore.Workloads
             {
                 _logger.LogError("Site data not loaded");
                 throw new InvalidOperationException("Site data not loaded");
-            }
-
-            site.Trees.ConvertTressToIronstone(_target);
+            }            
         }
+
         private Site? LoadSiteData()
         {
-            if (!File.Exists("nautilusexport.json"))
+            if (File.Exists("sitedata.json"))
             {
-                _logger.LogError("No site export file found.");
-                return null;
+                string jsonData = File.ReadAllText("sitedata.json");
+                Site site = JsonSerializer.Deserialize<Site>(jsonData);
+                site.ConvertToIronstone(_target);
+
+                return site;                
             }
 
-            string jsonData = File.ReadAllText("nautilusexport.json");
-            Site site = JsonSerializer.Deserialize<Site>(jsonData);
-            site.ConvertToIronstone(_target);
+            string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "sitedata.json");
+            if (File.Exists(path))
+            {
+                string jsonData = File.ReadAllText(path);
+                Site site = JsonSerializer.Deserialize<Site>(jsonData);
+                site.ConvertToIronstone(_target);
 
-            return site;
+                return site;
+            }
+
+            _logger.LogError("No site export file found.");
+            return null;
         }
 
         private LayoutSheetController GenerateSheets()
@@ -151,6 +164,9 @@ namespace TLS.NautilusLinkCore.Workloads
         {
             await Task.Run(() =>
             {
+                if (File.Exists("Results.zip"))
+                    File.Delete("Results.zip");
+
                 using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
                 {
                     using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create))
@@ -161,6 +177,7 @@ namespace TLS.NautilusLinkCore.Workloads
                         }
                     }
                 }
+
             });            
         }
     }

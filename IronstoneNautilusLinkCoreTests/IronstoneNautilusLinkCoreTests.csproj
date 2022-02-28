@@ -12,5 +12,10 @@
   </ItemGroup>  
   <ItemGroup>
     <ProjectReference Include="..\NautilusLinkCore\IronstoneNautilusLinkCore.csproj" />
+  </ItemGroup>  
+  <ItemGroup>
+    <None Update="sitedata.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
