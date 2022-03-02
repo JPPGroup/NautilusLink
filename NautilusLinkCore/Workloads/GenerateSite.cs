@@ -38,6 +38,8 @@ namespace TLS.NautilusLinkCore.Workloads
 
             logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
 
+            SupportFiles.CopyPlotFiles();
+
             GenerateSite generateSite = new GenerateSite();
             await generateSite.Run(logger);
         }

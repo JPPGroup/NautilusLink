@@ -11,8 +11,10 @@ namespace TLS.NautilusLinkCore.Workloads.SiteSheets
     {
         public static LayoutSheet CreateTreeSheet(this LayoutSheetController controller)
         {
-            var sheet = controller.AddLayout("T01 - Trees", PaperSize.A1Landscape);
-            
+            var sheet = controller.AddLayout("002", PaperSize.A1Landscape);
+            sheet.TitleBlock.Title = "Tree Layout";
+            sheet.TitleBlock.DrawingNumber = "002";            
+
             //Set up page
 
             return sheet;
