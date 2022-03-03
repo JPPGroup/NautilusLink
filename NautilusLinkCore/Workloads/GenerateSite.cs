@@ -31,18 +31,23 @@ namespace TLS.NautilusLinkCore.Workloads
         [IronstoneCommand]
         public static async void GenerateSiteCommand()
         {
-            Debugger.Launch();
             ILogger<IWorkload> logger = CoreExtensionApplication._current.Container.GetRequiredService<ILogger<IWorkload>>();
 
-            string t = Directory.GetCurrentDirectory();
+            try
+            {               
+                string t = Directory.GetCurrentDirectory();
 
-            logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
+                logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
 
-            SupportFiles.CopyPlotFiles();
+                SupportFiles.CopyPlotFiles();
 
-            GenerateSite generateSite = new GenerateSite();
-            await generateSite.Run(logger);
-            logger.LogDebug($"Generate site completed");
+                GenerateSite generateSite = new GenerateSite();
+                await generateSite.Run(logger);
+                logger.LogDebug($"Generate site completed");
+            } catch (System.Exception e)
+            {
+                logger.LogCritical(e, "General command failure");
+            }
         }
 
         public async Task Run(ILogger<IWorkload> logger)
