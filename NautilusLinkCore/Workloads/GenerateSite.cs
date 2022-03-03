@@ -42,6 +42,7 @@ namespace TLS.NautilusLinkCore.Workloads
 
             GenerateSite generateSite = new GenerateSite();
             await generateSite.Run(logger);
+            logger.LogDebug($"Generate site completed");
         }
 
         public async Task Run(ILogger<IWorkload> logger)
@@ -55,19 +56,23 @@ namespace TLS.NautilusLinkCore.Workloads
 
                 //Add xrefs
 
-                //Generate Sheets            
+                //Generate Sheets
+                logger.LogTrace($"Generating sheets...");
                 var controller = GenerateSheets();
 
                 //Plot Sheets            
                 controller.RemoveDefaultLayouts();
                 trans.Commit();
 
-                if(!Directory.Exists("plots"))
+                logger.LogTrace($"Creating plot directory...");
+                if (!Directory.Exists("plots"))
                     Directory.CreateDirectory("plots");
 
+                logger.LogTrace($"Plotting sheets...");
                 PlotSheets(controller);
-            }          
-            
+            }
+
+            logger.LogTrace($"Bundling sheets...");
             await BundlePlots();
         }                
                 
@@ -126,38 +131,44 @@ namespace TLS.NautilusLinkCore.Workloads
             {
                 using (PlotProgressDialog ppd = new PlotProgressDialog(false, 1, true))
                 {
-                    int bpValue = Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"));
-                    Application.SetSystemVariable("BACKGROUNDPLOT", 0);
-                    _logger.LogTrace($"BACKGROUNDPLOT set to {Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"))}");
-
-                    ppd.OnBeginPlot();
-                    ppd.IsVisible = false;
-                    pe.BeginPlot(ppd, null);
-
-                    List<string> expectedFiles = new List<string>();
-
-                    using (Application.DocumentManager.MdiActiveDocument.LockDocument())
+                    try
                     {
-                        foreach (LayoutSheet sheet in controller.Sheets.Values)
+                        int bpValue = Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"));
+                        Application.SetSystemVariable("BACKGROUNDPLOT", 0);
+                        _logger.LogTrace($"BACKGROUNDPLOT set to {Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"))}");
+
+                        ppd.OnBeginPlot();
+                        ppd.IsVisible = false;
+                        pe.BeginPlot(ppd, null);
+
+                        List<string> expectedFiles = new List<string>();
+
+                        using (Application.DocumentManager.MdiActiveDocument.LockDocument())
                         {
-                            string name = $"plots\\{sheet.GetPDFName()}";
-                            try
+                            foreach (LayoutSheet sheet in controller.Sheets.Values)
                             {
-                                sheet.Plot(name, pe, ppd);
-                                expectedFiles.Add(name);
-                            }
-                            catch (System.Exception e)
-                            {
-                                _logger.LogError(e, $"{name} failed to plot.");
+                                string name = $"plots\\{sheet.GetPDFName()}";
+                                try
+                                {
+                                    sheet.Plot(name, pe, ppd);
+                                    expectedFiles.Add(name);
+                                }
+                                catch (System.Exception e)
+                                {
+                                    _logger.LogError(e, $"{name} failed to plot.");
+                                }
                             }
                         }
+
+                        ppd.PlotProgressPos = 100;
+                        ppd.OnEndPlot();
+                        pe.EndPlot(null);
+
+                        Application.SetSystemVariable("BACKGROUNDPLOT", bpValue);
+                    } catch (System.Exception e)
+                    {
+                        _logger.LogCritical(e, "General plot failure");
                     }
-
-                    ppd.PlotProgressPos = 100;
-                    ppd.OnEndPlot();
-                    pe.EndPlot(null);
-
-                    Application.SetSystemVariable("BACKGROUNDPLOT", bpValue);
                 }
             }
         }
@@ -166,20 +177,25 @@ namespace TLS.NautilusLinkCore.Workloads
         {
             await Task.Run(() =>
             {
-                if (File.Exists("Results.zip"))
-                    File.Delete("Results.zip");
-
-                using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
+                try
                 {
-                    using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create))
+                    if (File.Exists("Results.zip"))
+                        File.Delete("Results.zip");
+
+                    using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
                     {
-                        foreach (string path in Directory.GetFiles("plots"))
+                        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create))
                         {
-                            archive.CreateEntryFromFile(path, Path.GetFileName(path));
+                            foreach (string path in Directory.GetFiles("plots"))
+                            {
+                                archive.CreateEntryFromFile(path, Path.GetFileName(path));
+                            }
                         }
                     }
+                } catch (System.Exception e)
+                {
+                    _logger.LogCritical(e, "General zip failure");
                 }
-
             });            
         }
     }
