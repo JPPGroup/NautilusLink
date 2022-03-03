@@ -152,6 +152,7 @@ namespace TLS.NautilusLinkCore.Workloads
                                 {
                                     sheet.Plot(name, pe, ppd);
                                     expectedFiles.Add(name);
+                                    _logger.LogTrace($"Plotted {name}");
                                 }
                                 catch (System.Exception e)
                                 {
@@ -168,6 +169,7 @@ namespace TLS.NautilusLinkCore.Workloads
                     } catch (System.Exception e)
                     {
                         _logger.LogCritical(e, "General plot failure");
+                        throw;
                     }
                 }
             }
@@ -175,7 +177,7 @@ namespace TLS.NautilusLinkCore.Workloads
 
         private async Task BundlePlots()
         {
-            await Task.Run(() =>
+            /*await Task.Run(() =>
             {
                 try
                 {
@@ -196,7 +198,29 @@ namespace TLS.NautilusLinkCore.Workloads
                 {
                     _logger.LogCritical(e, "General zip failure");
                 }
-            });            
+            });    */
+            try
+            {
+                if (File.Exists("Results.zip"))
+                    File.Delete("Results.zip");
+
+                using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
+                {
+                    using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Create))
+                    {
+                        foreach (string path in Directory.GetFiles("plots"))
+                        {
+                            _logger.LogTrace($"Adding {path} to result archive");
+                            archive.CreateEntryFromFile(path, Path.GetFileName(path));
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                _logger.LogCritical(e, "General zip failure");
+                throw;
+            }
         }
     }
 }
