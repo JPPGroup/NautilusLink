@@ -7,13 +7,16 @@ using System.Threading.Tasks;
 
 namespace TLS.NautilusLinkCore.Workloads.SiteSheets
 {
-    public static  class TreeSheet
+    internal static  class TreeSheet
     {
-        public static LayoutSheet CreateTreeSheet(this LayoutSheetController controller)
+        internal static LayoutSheet CreateTreeSheet(this LayoutSheetController controller, string ProjectName, string ProjectNumber)
         {
             var sheet = controller.AddLayout("002", PaperSize.A1Landscape);
             sheet.TitleBlock.Title = "Tree Layout";
             sheet.TitleBlock.DrawingNumber = "002";            
+
+            sheet.TitleBlock.ProjectNumber = ProjectNumber;
+            sheet.TitleBlock.Project = ProjectName;
 
             //Set up page
 

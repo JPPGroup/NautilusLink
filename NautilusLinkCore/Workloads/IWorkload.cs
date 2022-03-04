@@ -9,6 +9,6 @@ namespace TLS.NautilusLinkCore.Workloads
 {
     public interface IWorkload
     {
-        Task Run(ILogger<IWorkload> logger);
+        Task Run();
     }
 }

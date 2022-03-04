@@ -31,7 +31,9 @@ namespace TLS.NautilusLinkCore.Workloads
         [IronstoneCommand]
         public static void GenerateSiteCommand()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             ILogger<IWorkload> logger = CoreExtensionApplication._current.Container.GetRequiredService<ILogger<IWorkload>>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
             try
             {               
@@ -41,8 +43,8 @@ namespace TLS.NautilusLinkCore.Workloads
 
                 SupportFiles.CopyPlotFiles();
 
-                GenerateSite generateSite = new GenerateSite();
-                generateSite.Run(logger).GetAwaiter().GetResult();
+                GenerateSite generateSite = new GenerateSite(logger);
+                generateSite.Run().GetAwaiter().GetResult();
                 
                 logger.LogDebug($"Generate site completed");
             } catch (System.Exception e)
@@ -51,88 +53,100 @@ namespace TLS.NautilusLinkCore.Workloads
             }
         }
 
-        public async Task Run(ILogger<IWorkload> logger)
+        public GenerateSite(ILogger<IWorkload> logger)
         {
             _logger = logger;
             _target = Application.DocumentManager.MdiActiveDocument;
+        }
 
+        public async Task Run()
+        {          
             using (Transaction trans = _target.TransactionManager.StartTransaction())
             {
-                ProcessSite();
+                Site site = ProcessSite();
 
                 //Add xrefs
 
                 //Generate Sheets
-                logger.LogTrace($"Generating sheets...");
-                var controller = GenerateSheets();
+                _logger.LogTrace($"Generating sheets...");
+                var controller = GenerateSheets(site.Name, site.Reference);
 
                 //Plot Sheets            
+                _logger.LogTrace($"Removing sheet default layouts...");
                 controller.RemoveDefaultLayouts();
                 trans.Commit();
 
-                logger.LogTrace($"Creating plot directory...");
+                _logger.LogTrace($"Creating plot directory...");
                 if (!Directory.Exists("plots"))
                     Directory.CreateDirectory("plots");
 
-                logger.LogTrace($"Plotting sheets...");
+                _logger.LogTrace($"Plotting sheets...");
                 PlotSheets(controller);
             }
 
-            logger.LogTrace($"Bundling sheets...");
+            _logger.LogTrace($"Bundling sheets...");
             await BundlePlots().ConfigureAwait(false);
         }                
                 
-        private void ProcessSite()
+        private Site ProcessSite()
         {
             //Import nautilus data
             _logger.LogDebug("Loading site data");
-            Site site = LoadSiteData();
+            Site? site = LoadSiteData();
 
             if (site == null)
             {
                 _logger.LogError("Site data not loaded");
                 throw new InvalidOperationException("Site data not loaded");
-            }            
+            }
+
+            return site;
         }
 
         private Site? LoadSiteData()
         {
             if (File.Exists("sitedata.json"))
             {
-                string jsonData = File.ReadAllText("sitedata.json");
-                Site site = JsonSerializer.Deserialize<Site>(jsonData);
-                site.ConvertToIronstone(_target);
-
-                return site;                
+                return LoadSiteFrom("sitedata.json");
             }
 
             string path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "sitedata.json");
             if (File.Exists(path))
             {
-                string jsonData = File.ReadAllText(path);
-                Site site = JsonSerializer.Deserialize<Site>(jsonData);
-                site.ConvertToIronstone(_target);
-
-                return site;
+                return LoadSiteFrom(path);
             }
 
             _logger.LogError("No site export file found.");
             return null;
         }
 
-        private LayoutSheetController GenerateSheets()
+        private Site LoadSiteFrom(string path)
+        {
+            string jsonData = File.ReadAllText(path);
+            Site? site = JsonSerializer.Deserialize<Site>(jsonData);
+
+            if (site == null)
+                throw new InvalidOperationException("Stie data invalid - load failed");
+
+            site.ConvertToIronstone(_target);
+            return site;
+        }
+
+        private LayoutSheetController GenerateSheets(string ProjectName, string ProjectNumber)
         {
             var coreLogger = CoreExtensionApplication._current.Container.GetRequiredService<ILogger<CoreExtensionApplication>>();
             var coreConfig = CoreExtensionApplication._current.Container.GetRequiredService<IConfiguration>();
             LayoutSheetController sheetController = new LayoutSheetController(coreLogger, _target.Database, coreConfig);
 
-            sheetController.CreateTreeSheet();
+            sheetController.CreateTreeSheet(ProjectName, ProjectNumber);
+            _logger.LogTrace($"Sheet Controller has {sheetController.Sheets.Count}.");
 
             return sheetController;
         }
 
         private void PlotSheets(LayoutSheetController controller)
         {
+            _logger.LogTrace($"Preparing to plot {controller.Sheets.Count} sheets");
             try
             {
                 using (PlotEngine pe = PlotFactory.CreatePublishEngine())
@@ -173,6 +187,7 @@ namespace TLS.NautilusLinkCore.Workloads
                         pe.EndPlot(null);
 
                         Application.SetSystemVariable("BACKGROUNDPLOT", bpValue);
+                        _logger.LogTrace($"BACKGROUNDPLOT set to {Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"))}");
 
                     }
                 }
@@ -182,7 +197,6 @@ namespace TLS.NautilusLinkCore.Workloads
                 _logger.LogCritical(e, "General plot failure");
                 throw;
             }
-
         }
 
         private async Task BundlePlots()
@@ -212,9 +226,7 @@ namespace TLS.NautilusLinkCore.Workloads
             try
             {
                 if (File.Exists("Results.zip"))
-                    File.Delete("Results.zip");
-
-                throw new System.Exception();
+                    File.Delete("Results.zip");                                
 
                 using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
                 {
