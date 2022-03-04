@@ -29,7 +29,7 @@ namespace TLS.NautilusLinkCore.Workloads
 
         [CommandMethod("NAUT_GENERATESITE")]
         [IronstoneCommand]
-        public static async void GenerateSiteCommand()
+        public static void GenerateSiteCommand()
         {
             ILogger<IWorkload> logger = CoreExtensionApplication._current.Container.GetRequiredService<ILogger<IWorkload>>();
 
@@ -42,7 +42,8 @@ namespace TLS.NautilusLinkCore.Workloads
                 SupportFiles.CopyPlotFiles();
 
                 GenerateSite generateSite = new GenerateSite();
-                await generateSite.Run(logger);
+                generateSite.Run(logger).GetAwaiter().GetResult();
+                
                 logger.LogDebug($"Generate site completed");
             } catch (System.Exception e)
             {
@@ -78,7 +79,7 @@ namespace TLS.NautilusLinkCore.Workloads
             }
 
             logger.LogTrace($"Bundling sheets...");
-            await BundlePlots();
+            await BundlePlots().ConfigureAwait(false);
         }                
                 
         private void ProcessSite()
@@ -132,12 +133,13 @@ namespace TLS.NautilusLinkCore.Workloads
 
         private void PlotSheets(LayoutSheetController controller)
         {
-            using (PlotEngine pe = PlotFactory.CreatePublishEngine())
+            try
             {
-                using (PlotProgressDialog ppd = new PlotProgressDialog(false, 1, true))
+                using (PlotEngine pe = PlotFactory.CreatePublishEngine())
                 {
-                    try
+                    using (PlotProgressDialog ppd = new PlotProgressDialog(false, 1, true))
                     {
+
                         int bpValue = Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"));
                         Application.SetSystemVariable("BACKGROUNDPLOT", 0);
                         _logger.LogTrace($"BACKGROUNDPLOT set to {Convert.ToInt32(Application.GetSystemVariable("BACKGROUNDPLOT"))}");
@@ -171,13 +173,16 @@ namespace TLS.NautilusLinkCore.Workloads
                         pe.EndPlot(null);
 
                         Application.SetSystemVariable("BACKGROUNDPLOT", bpValue);
-                    } catch (System.Exception e)
-                    {
-                        _logger.LogCritical(e, "General plot failure");
-                        throw;
+
                     }
                 }
             }
+            catch (System.Exception e)
+            {
+                _logger.LogCritical(e, "General plot failure");
+                throw;
+            }
+
         }
 
         private async Task BundlePlots()
@@ -208,6 +213,8 @@ namespace TLS.NautilusLinkCore.Workloads
             {
                 if (File.Exists("Results.zip"))
                     File.Delete("Results.zip");
+
+                throw new System.Exception();
 
                 using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
                 {
