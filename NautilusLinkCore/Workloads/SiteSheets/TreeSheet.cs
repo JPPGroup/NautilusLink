@@ -13,7 +13,7 @@ namespace TLS.NautilusLinkCore.Workloads.SiteSheets
         {
             var sheet = controller.AddLayout("002", PaperSize.A1Landscape);
             sheet.TitleBlock.Title = "Tree Layout";
-            sheet.TitleBlock.DrawingNumber = "002";            
+            sheet.TitleBlock.DrawingNumber = "002 - Trees";            
 
             sheet.TitleBlock.ProjectNumber = ProjectNumber;
             sheet.TitleBlock.Project = ProjectName;
