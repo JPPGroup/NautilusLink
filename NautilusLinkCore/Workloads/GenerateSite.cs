@@ -41,7 +41,8 @@ namespace TLS.NautilusLinkCore.Workloads
 
                 logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
 
-                SupportFiles.CopyPlotFiles();
+                if(CoreExtensionApplication.ForgeDesignAutomation)
+                    SupportFiles.CopyPlotFiles();
 
                 GenerateSite generateSite = new GenerateSite(logger);
                 generateSite.Run().GetAwaiter().GetResult();
