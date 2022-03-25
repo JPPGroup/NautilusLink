@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Autodesk.AutoCAD.ApplicationServices;
 using System.Reflection;
+using Jpp.Ironstone.Core.Autocad;
 
 namespace TLS.NautilusLinkCore.Workloads
 {
@@ -36,21 +37,14 @@ namespace TLS.NautilusLinkCore.Workloads
 #pragma warning restore CS0618 // Type or member is obsolete
 
             try
-            {               
-                string t = Directory.GetCurrentDirectory();
-
-                logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
-
-                if(CoreExtensionApplication.ForgeDesignAutomation)
-                    SupportFiles.CopyPlotFiles();
-
+            {                   
                 GenerateSite generateSite = new GenerateSite(logger);
-                generateSite.Run().GetAwaiter().GetResult();
+                generateSite.Run().GetAwaiter().GetResult();                
                 
-                logger.LogDebug($"Generate site completed");
             } catch (System.Exception e)
             {
                 logger.LogCritical(e, "General command failure");
+                throw;
             }
         }
 
@@ -61,12 +55,22 @@ namespace TLS.NautilusLinkCore.Workloads
         }
 
         public async Task Run()
-        {          
+        {
+            string t = Directory.GetCurrentDirectory();
+
+            _logger.LogDebug($"Current working directory is {Directory.GetCurrentDirectory()}");
+
+            if (CoreExtensionApplication.ForgeDesignAutomation)
+                SupportFiles.CopyPlotFiles();
+
             using (Transaction trans = _target.TransactionManager.StartTransaction())
             {
                 Site site = ProcessSite();
 
                 //Add xrefs
+                _logger.LogTrace($"Processing xrefs...");
+                ExportXrefs();
+                LinkXrefs();
 
                 //Generate Sheets
                 _logger.LogTrace($"Generating sheets...");
@@ -87,8 +91,89 @@ namespace TLS.NautilusLinkCore.Workloads
 
             _logger.LogTrace($"Bundling sheets...");
             await BundlePlots().ConfigureAwait(false);
-        }                
-                
+
+            _logger.LogDebug($"Generate site completed");
+        }
+
+        private void ExportXrefs()
+        {
+            try
+            {
+                string path1 = "xrefs.zip";
+                string path2 = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "xrefs.zip");
+                string path = null;
+
+                if (File.Exists(path2))
+                {
+                    path = path2;
+                }
+
+                if (File.Exists(path1))
+                {
+                    path = path1;
+                }               
+
+                if (path != null)
+                {
+                    using (var fileStream = new FileStream(path, FileMode.Open))
+                    {
+                        using (var archive = new ZipArchive(fileStream, ZipArchiveMode.Read))
+                        {
+                            archive.ExtractToDirectory("xrefs");
+                            _logger.LogTrace($"Xref bundle found and extracted");
+                            return;
+                        }
+                    }
+                }
+            } catch (System.Exception ex)
+            {
+                _logger.LogError(ex, "Failure to unbundle xref files");
+            }
+
+            _logger.LogTrace($"No xref bundle found.");
+        }
+
+        private void LinkXrefs()
+        {
+            if (!Directory.Exists("xrefs"))
+            {
+                _logger.LogTrace($"No xref directory found.");
+                return;
+            }                
+
+            var files = Directory.GetFiles("xrefs");
+
+            if (files.Length == 0)
+            {
+                _logger.LogTrace($"No xref files found to link.");
+                return;
+            }
+
+            Database db = _target.Database;
+
+            using (var tr = db.TransactionManager.StartOpenCloseTransaction())
+            {
+                foreach (var file in files)
+                {
+                    string name = Path.GetFileNameWithoutExtension(file);
+                    string absPath = Path.Combine(Directory.GetCurrentDirectory(), file);
+
+                    var xId = db.AttachXref(absPath, name);
+                    if (xId.IsValid)
+                    {
+                        BlockTableRecord btr = db.GetModelSpace(true);
+
+                        var br = new BlockReference(Autodesk.AutoCAD.Geometry.Point3d.Origin, xId);
+                        btr.AppendEntity(br);
+                        tr.AddNewlyCreatedDBObject(br, true);
+                        _logger.LogTrace($"Linked {name}");
+                    }
+                }
+                tr.Commit();
+            }
+            _logger.LogTrace($"Linking complete");
+        }
+
         private Site ProcessSite()
         {
             //Import nautilus data
@@ -139,7 +224,7 @@ namespace TLS.NautilusLinkCore.Workloads
             var coreConfig = CoreExtensionApplication._current.Container.GetRequiredService<IConfiguration>();
             LayoutSheetController sheetController = new LayoutSheetController(coreLogger, _target.Database, coreConfig);
 
-            sheetController.CreateTreeSheet(ProjectName, ProjectNumber);
+            sheetController.CreateTreeSheet(coreConfig, ProjectName, ProjectNumber);
             _logger.LogTrace($"Sheet Controller has {sheetController.Sheets.Count}.");
 
             return sheetController;
@@ -169,7 +254,7 @@ namespace TLS.NautilusLinkCore.Workloads
                         {
                             foreach (LayoutSheet sheet in controller.Sheets.Values)
                             {
-                                string name = $"plots\\{sheet.GetPDFName()}";
+                                string name = Path.Combine(Directory.GetCurrentDirectory(), $"plots\\{sheet.GetPDFName()}");
                                 try
                                 {
                                     sheet.Plot(name, pe, ppd);
@@ -238,6 +323,18 @@ namespace TLS.NautilusLinkCore.Workloads
                             _logger.LogTrace($"Adding {path} to result archive");
                             archive.CreateEntryFromFile(path, Path.GetFileName(path));
                         }
+
+                        _logger.LogTrace($"Saving dwg file");
+                        _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
+                        _target.Database.SetXrefRelative();
+                        archive.CreateEntryFromFile("Model.dwg", "Model.dwg");
+
+                        foreach (string path in Directory.GetFiles("xrefs"))
+                        {
+                            _logger.LogTrace($"Adding {path} to result archive");
+                            archive.CreateEntryFromFile($"{path}", $"xrefs/{Path.GetFileName(path)}");
+                        }
+
                     }
                 }
             }
