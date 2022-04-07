@@ -20,6 +20,10 @@ using System.Diagnostics;
 using Autodesk.AutoCAD.ApplicationServices;
 using System.Reflection;
 using Jpp.Ironstone.Core.Autocad;
+using Jpp.Ironstone.Housing.ObjectModel;
+using Jpp.Ironstone.Housing.ObjectModel.Detail;
+using Jpp.Ironstone.Core.ServiceInterfaces;
+using Application = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
 namespace TLS.NautilusLinkCore.Workloads
 {
@@ -225,6 +229,15 @@ namespace TLS.NautilusLinkCore.Workloads
             LayoutSheetController sheetController = new LayoutSheetController(coreLogger, _target.Database, coreConfig);
 
             sheetController.CreateTreeSheet(coreConfig, ProjectName, ProjectNumber);
+
+            var acDoc = Application.DocumentManager.MdiActiveDocument;
+            DetailPlotManager plotManager = DataService.Current.GetStore<HousingDocumentStore>(acDoc.Name).GetManager<DetailPlotManager>();
+
+            foreach(DetailPlot dp in plotManager.ManagedObjects)
+            {
+                sheetController.CreatePlotSheet(coreConfig, ProjectName, ProjectNumber, dp);
+            }
+
             _logger.LogTrace($"Sheet Controller has {sheetController.Sheets.Count}.");
 
             return sheetController;

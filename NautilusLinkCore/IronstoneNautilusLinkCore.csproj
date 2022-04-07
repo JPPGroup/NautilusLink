@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\IronstoneObjectModel\DocumentManagement\IronstoneDocumentManagementObjectModel.csproj" />
+    <ProjectReference Include="..\..\IronstoneObjectModel\Housing\HousingObjectModel.csproj" />
     <ProjectReference Include="..\..\IronstoneObjectModel\Structures\StructuresObjectModel.csproj" />
   </ItemGroup>
 
