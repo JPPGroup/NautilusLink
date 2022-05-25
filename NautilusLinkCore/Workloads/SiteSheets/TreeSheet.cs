@@ -17,6 +17,8 @@ namespace TLS.NautilusLinkCore.Workloads.SiteSheets
             if (ringManager.ManagedObjects.Count < 1)
                 return null;
 
+            ringManager.UpdateAll();
+
             var sheet = controller.AddLayout("002 - Trees", PaperSize.A1Landscape);
             
             BaseSheet.SetTitleBlock(sheet, settings, "treesheet", ProjectName, ProjectNumber);

@@ -71,6 +71,9 @@ namespace TLS.NautilusLinkCore.Workloads
             {
                 Site site = ProcessSite();
 
+                _logger.LogTrace($"Saving dwg file");
+                _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
+
                 //Add xrefs
                 _logger.LogTrace($"Processing xrefs...");
                 ExportXrefs();
@@ -233,9 +236,11 @@ namespace TLS.NautilusLinkCore.Workloads
             var acDoc = Application.DocumentManager.MdiActiveDocument;
             DetailPlotManager plotManager = DataService.Current.GetStore<HousingDocumentStore>(acDoc.Name).GetManager<DetailPlotManager>();
 
-            foreach(DetailPlot dp in plotManager.ManagedObjects)
-            {
-                sheetController.CreatePlotSheet(coreConfig, ProjectName, ProjectNumber, dp);
+            int i = 1;
+            foreach (DetailPlot dp in plotManager.ManagedObjects)
+            {                
+                sheetController.CreatePlotSheet(coreConfig, ProjectName, ProjectNumber, dp, i.ToString());
+                i++;
             }
 
             _logger.LogTrace($"Sheet Controller has {sheetController.Sheets.Count}.");
@@ -337,9 +342,9 @@ namespace TLS.NautilusLinkCore.Workloads
                             archive.CreateEntryFromFile(path, Path.GetFileName(path));
                         }
 
-                        _logger.LogTrace($"Saving dwg file");
-                        _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
+                        _logger.LogTrace($"Saving dwg file");                        
                         _target.Database.SetXrefRelative();
+                        _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
                         archive.CreateEntryFromFile("Model.dwg", "Model.dwg");
 
                         foreach (string path in Directory.GetFiles("xrefs"))
