@@ -69,10 +69,7 @@ namespace TLS.NautilusLinkCore.Workloads
 
             using (Transaction trans = _target.TransactionManager.StartTransaction())
             {
-                Site site = ProcessSite();
-
-                _logger.LogTrace($"Saving dwg file");
-                _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
+                Site site = ProcessSite();                
 
                 //Add xrefs
                 _logger.LogTrace($"Processing xrefs...");
@@ -94,6 +91,12 @@ namespace TLS.NautilusLinkCore.Workloads
 
                 _logger.LogTrace($"Plotting sheets...");
                 PlotSheets(controller);
+            }
+
+            using (Transaction trans = _target.TransactionManager.StartTransaction())
+            {
+                _target.Database.SetXrefRelative(t);
+                trans.Commit();
             }
 
             _logger.LogTrace($"Bundling sheets...");
@@ -328,8 +331,8 @@ namespace TLS.NautilusLinkCore.Workloads
                 }
             });    */
             try
-            {
-                if (File.Exists("Results.zip"))
+            {               
+               if (File.Exists("Results.zip"))
                     File.Delete("Results.zip");                                
 
                 using (var fileStream = new FileStream("Results.zip", FileMode.CreateNew))
@@ -342,8 +345,7 @@ namespace TLS.NautilusLinkCore.Workloads
                             archive.CreateEntryFromFile(path, Path.GetFileName(path));
                         }
 
-                        _logger.LogTrace($"Saving dwg file");                        
-                        _target.Database.SetXrefRelative();
+                        _logger.LogTrace($"Saving dwg file");                                                
                         _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
                         archive.CreateEntryFromFile("Model.dwg", "Model.dwg");
 

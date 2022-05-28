@@ -28,9 +28,17 @@ namespace TLS.NautilusLinkCore.Workloads.SiteSheets
             viewport.SetLayer(Constants.VIEWPORT_LAYER);
                          
             viewport.FocusOn(settings, ringManager.GetBoundingBox());
+            double scale = viewport.GetScale();
+
+            //Set annotation scales
+            foreach (var tree in ringManager.ManagedObjects)
+            {
+                tree.Label.AddAnnotativeScale(scale);
+                tree.Label.Annotative = true;
+            }
 
             //Set scale
-            sheet.TitleBlock.Scale = "1:???";
+            sheet.TitleBlock.Scale = $"1:{scale}";
 
             return sheet;
         }
