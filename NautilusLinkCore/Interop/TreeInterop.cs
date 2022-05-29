@@ -8,18 +8,20 @@ using System.Linq;
 using NTree = TLS.Nautilus.Api.Shared.DataStructures.Tree;
 using ITree = Jpp.Ironstone.Structures.ObjectModel.TreeRings.Tree;
 using TLS.Nautilus.Api.Shared.DataStructures;
+using Microsoft.Extensions.Logging;
 
 namespace TLS.NautilusLinkCore.Interop
 {
     internal static class TreeInterop
     {       
-        public static void ConvertTressToIronstone(this IEnumerable<NTree> trees, Document target)
+        public static void ConvertTreesToIronstone(this IEnumerable<NTree> trees, Document target, ILogger logger)
         {
             TreeRingManager ringManager = DataService.Current.GetStore<StructureDocumentStore>(target.Name).GetManager<TreeRingManager>();
             NautilusDocumentStore nautilus = DataService.Current.GetStore<NautilusDocumentStore>(target.Name);
 
             //List<NTree> trees = new List<NTree>();
-                      
+
+            logger.LogDebug($"Converting trees, {trees.Count()} found ");
             foreach (NTree tree in trees)
             {
                 ITree itree = tree.ConvertToIronstone();
@@ -39,7 +41,9 @@ namespace TLS.NautilusLinkCore.Interop
                     itree.Id = Guid.NewGuid();
                     nautilus.TreeMappings.Add(new KeyValuePair<long, Guid>(tree.BaseObjectPtr, ntree.Id));
                 }*/                
-            }            
+            }
+
+            logger.LogDebug($"Conversion finished, {ringManager.ManagedObjects.Count} trees added");
         }
 
         public static List<NTree> ConvertTreesFromIronstone(this Document doc)

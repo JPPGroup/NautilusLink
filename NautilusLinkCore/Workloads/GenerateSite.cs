@@ -196,6 +196,7 @@ namespace TLS.NautilusLinkCore.Workloads
                 throw new InvalidOperationException("Site data not loaded");
             }
 
+            _logger.LogDebug($"Loaded site {site.Name}");
             return site;
         }
 
@@ -218,14 +219,22 @@ namespace TLS.NautilusLinkCore.Workloads
 
         private Site LoadSiteFrom(string path)
         {
-            string jsonData = File.ReadAllText(path);
-            Site? site = JsonSerializer.Deserialize<Site>(jsonData);
+            try
+            {
+                string jsonData = File.ReadAllText(path);
+                Site? site = JsonSerializer.Deserialize<Site>(jsonData);
 
-            if (site == null)
-                throw new InvalidOperationException("Stie data invalid - load failed");
+                if (site == null)
+                    throw new InvalidOperationException("Site data invalid - load failed");
 
-            site.ConvertToIronstone(_target);
-            return site;
+                site.ConvertToIronstone(_target, _logger);
+                return site;
+            }
+            catch (System.Exception ex)
+            {
+                _logger.LogCritical(ex, "Exception thrown loading site data");
+                throw;
+            }            
         }
 
         private LayoutSheetController GenerateSheets(string ProjectName, string ProjectNumber)
