@@ -46,7 +46,7 @@ namespace Jpp.Ironstone.Core.Tests
             }
         }
 
-        [Test]
+        //TODO: COmplete this test        
         public void RunGenerationNoXrefs()
         {
             Assert.IsTrue(RunTest<bool>(nameof(RunGenerationResident)), "Test run did not complete.");

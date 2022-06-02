@@ -358,14 +358,23 @@ namespace TLS.NautilusLinkCore.Workloads
                         _target.Database.SaveAs("Model.dwg", DwgVersion.Current);
                         archive.CreateEntryFromFile("Model.dwg", "Model.dwg");
 
-                        foreach (string path in Directory.GetFiles("xrefs"))
+                        if (Directory.Exists("xrefs"))
                         {
-                            _logger.LogTrace($"Adding {path} to result archive");
-                            archive.CreateEntryFromFile($"{path}", $"xrefs/{Path.GetFileName(path)}");
+                            _logger.LogInformation($"Adding xref directory to archive");
+                            foreach (string path in Directory.GetFiles("xrefs"))
+                            {
+                                _logger.LogTrace($"Adding {path} to result archive");
+                                archive.CreateEntryFromFile($"{path}", $"xrefs/{Path.GetFileName(path)}");
+                            }
                         }
-
+                        else
+                        {
+                            _logger.LogInformation($"No xref directory found to add to archive");
+                        }
                     }
                 }
+
+                _logger.LogInformation($"Archive complete.");
             }
             catch (System.Exception e)
             {
