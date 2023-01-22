@@ -136,7 +136,7 @@ namespace TLS.NautilusLink
         public static async void ForceSync()
         {
             ISiteClient client = NautilusLinkExtensionApplication._current._provider.GetRequiredService<ISiteClient>();
-            Sync(client);
+            Sync(client, Autodesk.AutoCAD.ApplicationServices.Core.Application.DocumentManager.MdiActiveDocument);
         }
     }
 }

@@ -9,6 +9,7 @@ using Jpp.Ironstone.Housing.ObjectModel.Detail;
 using Jpp.Ironstone.Structures.ObjectModel;
 using Jpp.Ironstone.Structures.ObjectModel.TreeRings;
 using TLS.Nautilus.Api;
+using TLS.Nautilus.Api.Shared;
 using TLS.Nautilus.Api.Shared.DataStructures;
 using TLS.NautilusLink.Converters;
 using Tree = Jpp.Ironstone.Structures.ObjectModel.TreeRings.Tree;
@@ -57,7 +58,7 @@ namespace TLS.NautilusLink
         private static async Task SyncSoilPropertiesToRemote(ISiteClient client, Document doc, Guid site)
         {
             SoilProperties sp = DataService.Current.GetStore<StructureDocumentStore>(doc.Name).SoilProperties;
-            Site siteData = await client.GetSiteAsync(site);
+            ISite siteData = await client.GetSiteAsync(site);
 
             //TODO: Implement checks for existing properties
             
@@ -85,9 +86,13 @@ namespace TLS.NautilusLink
         {
             TreeRingManager treeRingManager = DataService.Current.GetStore<StructureDocumentStore>(doc.Name).GetManager<TreeRingManager>();
             NautilusDocumentStore nautilus = DataService.Current.GetStore<NautilusDocumentStore>(doc.Name);
-            Site siteData = await client.GetSiteAsync(site);
-            siteData.Trees.Clear();
-            
+            ISite siteData = await client.GetSiteAsync(site);
+
+            foreach (Nautilus.Api.Shared.DataStructures.Tree nTree in siteData.Trees)
+            {
+                siteData.RemoveTree(nTree);
+            }
+
             foreach (Tree tree in treeRingManager.ManagedObjects)
             {
                 var ntree = tree.ConvertToNautilus();
@@ -101,8 +106,8 @@ namespace TLS.NautilusLink
                     ntree.Id = Guid.NewGuid();
                     nautilus.TreeMappings.Add(new KeyValuePair<long, Guid>(tree.BaseObjectPtr, ntree.Id));
                 }
-                
-                siteData.Trees.Add(ntree);
+
+                siteData.AddTree(ntree);
             }
         }
 
@@ -112,7 +117,7 @@ namespace TLS.NautilusLink
             DetailPlotMasterManager masterManager = DataService.Current.GetStore<HousingDocumentStore>(doc.Name).GetManager<DetailPlotMasterManager>();
             NautilusDocumentStore nautilus = DataService.Current.GetStore<NautilusDocumentStore>(doc.Name);
             
-            Site siteData = await client.GetSiteAsync(site);
+            ISite siteData = await client.GetSiteAsync(site);
 
             foreach (DetailPlotMaster master in masterManager.ManagedObjects)  
             {

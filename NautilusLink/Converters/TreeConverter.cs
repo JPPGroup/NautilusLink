@@ -15,7 +15,9 @@ namespace TLS.NautilusLink.Converters
         {
             NautTree nt = new Tree();
             nt.TreeReference = tree.ID;
-            nt.Species = tree.Species;
+            //TODO: FIx this
+            throw new NotImplementedException();
+            //nt.Species = tree.Species;
             nt.Id = Guid.NewGuid();
             return nt;
         }
