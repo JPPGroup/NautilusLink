@@ -6,6 +6,7 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.Windows;
 using Jpp.Ironstone.Core;
 using Jpp.Ironstone.Core.UI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TLS.Nautilus.Api;
 using TLS.NautilusLink;
@@ -24,6 +25,7 @@ namespace TLS.NautilusLink
         public static NautilusLinkExtensionApplication _current;
         internal IServiceProvider _provider;
         private ISiteClient _siteClient;
+        private IConfiguration _settings;
 
         private SiteDesignerLink _siteDesigner;
         
@@ -94,41 +96,28 @@ namespace TLS.NautilusLink
             _provider = container;
             _siteDesigner = new SiteDesignerLink(_auth);
             _siteClient = container.GetRequiredService<ISiteClient>();
+            _settings = container.GetRequiredService<IConfiguration>();
         }
 
         public void CreateUI()
         {
             RibbonControl rc = ComponentManager.Ribbon;
-            RibbonTab _nautilusTab = new RibbonTab
+            /*RibbonTab _nautilusTab = new RibbonTab
             {
                 Name = Resources.ExtensionApplication_Tab_Name,
                 Title = Resources.ExtensionApplication_Tab_Name,
                 Id = "NAUT"
             };
             
-            rc.Tabs.Add(_nautilusTab);
-            
-            
+            rc.Tabs.Add(_nautilusTab);*/
+            RibbonTab _nautilusTab = rc.FindTab(Jpp.Ironstone.Core.Constants.IronstoneGeneralTabId);
+            bool enabled = bool.Parse(_settings["nl:uienable"]);
+
             RibbonPanel panel = new RibbonPanel();
             RibbonPanelSource source = new RibbonPanelSource { Title = "Nautilus Account" };
             RibbonRowPanel stack = new RibbonRowPanel();
 
-            /*RibbonToggleButton aboutButton = UIHelper.CreateWindowToggle(Resources.ExtensionApplication_AboutWindow_Name, Resources.About, RibbonItemSize.Standard, _container.Resolve<About>(), "10992236-c8f6-4732-b5e0-2d9194f07068");
-            RibbonButton feedbackButton = UIHelper.CreateButton(Resources.ExtensionApplication_UI_BtnFeedback, Resources.Feedback, RibbonItemSize.Standard, "Core_Feedback");
-            RibbonToggleButton reviewButton = UIHelper.CreateWindowToggle(Resources.ExtensionApplication_ReviewWindow_Name, Resources.Review, RibbonItemSize.Large, _container.Resolve<Review>(), "18cd4414-8fc8-4978-9e97-ae3915e29e07");
-            RibbonToggleButton libraryButton = UIHelper.CreateWindowToggle(Resources.ExtensionApplication_LibraryWindow_Name, Resources.Library_Small, RibbonItemSize.Standard, _container.Resolve<Libraries>(), "08ccb73d-6e6b-4ea0-8d99-61bbeb7c20af");
-
-            RibbonRowPanel column = new RibbonRowPanel { IsTopJustified = true };
-            column.Items.Add(aboutButton);
-            column.Items.Add(new RibbonRowBreak());
-            column.Items.Add(feedbackButton);
-            column.Items.Add(new RibbonRowBreak());
-            column.Items.Add(libraryButton);
-            
-            stack.Items.Add(column);
-            stack.Items.Add(reviewButton);*/
-
-            _loginState = UIHelper.CreateButton(Resources.ExtensionApplication_LoginStateButton_LoginText, Resources.loginstate, RibbonItemSize.Large, "NAUT_Login");
+            _loginState = UIHelper.CreateButton(Resources.ExtensionApplication_LoginStateButton_LoginText, Resources.loginstate, RibbonItemSize.Large, "NAUT_Login", () => enabled);
             stack.Items.Add(_loginState);
             
             //Add the new tab section to the main tab

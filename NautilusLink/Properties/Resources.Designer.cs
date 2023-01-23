@@ -137,6 +137,15 @@ namespace TLS.NautilusLink.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sync Site.
+        /// </summary>
+        internal static string SiteDesignerLink_ForceSyncButton_Text {
+            get {
+                return ResourceManager.GetString("SiteDesignerLink_ForceSyncButton_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Set Site.
         /// </summary>
         internal static string SiteDesignerLink_SetSiteButton_Text {

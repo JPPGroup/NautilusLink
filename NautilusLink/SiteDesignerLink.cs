@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Diagnostics.Eventing.Reader;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Runtime;
-using Autodesk.Civil.DatabaseServices;
 using Autodesk.Windows;
 using Jpp.Ironstone.Core.UI;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using TLS.Nautilus.Api;
 using TLS.NautilusLink.Properties;
 using TLS.NautilusLink.ViewModels;
@@ -28,18 +25,22 @@ namespace TLS.NautilusLink
         {
             RibbonPanel panel = new RibbonPanel();
             RibbonPanelSource source = new RibbonPanelSource { Title = Resources.SiteDesignerLink_TabPanel_Text };
-            RibbonRowPanel stack = new RibbonRowPanel();
+            RibbonRowPanel row = new RibbonRowPanel();
+            RibbonRowPanel stack = new RibbonRowPanel { IsTopJustified = true };
 
-            RibbonButton browserLink = UIHelper.CreateButton(Resources.SiteDesignerLink_BrowserLinkButton_Text, Resources.sitebrowser, RibbonItemSize.Large, "NAUT_OpenSiteDesigner");
-            stack.Items.Add(browserLink);
-            
+            RibbonButton browserLink = UIHelper.CreateButton(Resources.SiteDesignerLink_BrowserLinkButton_Text, Resources.sitebrowser, RibbonItemSize.Large, "NAUT_OpenSiteDesigner", () => _wrapper.Authenticated);
+            row.Items.Add(browserLink);
+
             RibbonButton setSite = UIHelper.CreateButton(Resources.SiteDesignerLink_SetSiteButton_Text, Resources.pin, RibbonItemSize.Standard, "NAUT_SetSite", () => _wrapper.Authenticated);
             stack.Items.Add(setSite);
-            
-            RibbonButton forceSync = UIHelper.CreateButton(Resources.SiteDesignerLink_SetSiteButton_Text, Resources.sync, RibbonItemSize.Standard, "NAUT_ForceSync", () => _wrapper.Authenticated);
+            stack.Items.Add(new RibbonRowBreak());
+
+            RibbonButton forceSync = UIHelper.CreateButton(Resources.SiteDesignerLink_ForceSyncButton_Text, Resources.sync, RibbonItemSize.Standard, "NAUT_ForceSync", () => _wrapper.Authenticated);
             stack.Items.Add(forceSync);
-            
-            source.Items.Add(stack);
+            stack.Items.Add(new RibbonRowBreak());
+
+            row.Items.Add(stack);
+            source.Items.Add(row);
             panel.Source = source;
             return panel;
         }

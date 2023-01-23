@@ -142,6 +142,9 @@
   <data name="SiteDesignerLink_BrowserLinkButton_Text" xml:space="preserve">
     <value>Open SiteDesigner</value>
   </data>
+  <data name="SiteDesignerLink_ForceSyncButton_Text" xml:space="preserve">
+    <value>Sync Site</value>
+  </data>
   <data name="SiteDesignerLink_SetSiteButton_Text" xml:space="preserve">
     <value>Set Site</value>
   </data>
